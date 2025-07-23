@@ -1,43 +1,49 @@
 from fastapi import Depends, HTTPException, APIRouter
 from sqlalchemy.orm import Session
 
-from app.db.database import SessionLocal
-from app.db.tables import Gig, Moment, User
+from app.db.database import get_db
+from app.db.tables import Gig, Moment, User, Artist
 from app.models.gig import GigCreate, GigRead
 from app.models.moment import MomentRead, MomentsWrapper
 
 router = APIRouter()
 
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
 def get_gig(gig_id: str, db: Session = Depends(get_db)):
-    print(Gig)
     gig = db.query(Gig).filter(Gig.id == gig_id).first()
     if not gig:
         raise HTTPException(status_code=404,
                             detail="Gig not found")
     return gig
 
+def get_or_create_artist(db: Session, name: str) -> Artist:
+    artist = db.query(Artist).filter_by(name=name).first()
+    if not artist:
+        artist = Artist(name=name)
+        db.add(artist)
+        db.flush()
+    return artist
+
 # CREATE
 @router.post("/", response_model=GigRead)
 def create_gig(gig: GigCreate, db: Session = Depends(get_db)):
     db_gig = Gig(
-        artist=gig.artist,
         venue=gig.venue,
         date=gig.date,
         location=gig.location,
         favourite=gig.favourite
     )
+
+    artists_seen = []
+
+    for artist_name in gig.artists:
+        artists_seen.append(get_or_create_artist(db, artist_name))
+
+    db_gig.artists = artists_seen
+
     db.add(db_gig)
     db.commit()
     db.refresh(db_gig)
+
     return db_gig
 
 @router.post("/{gig_id}/moments/", response_model=list[MomentRead])
@@ -89,8 +95,7 @@ def add_users_to_gig(
     return gig_attendants
 
 # READ
-
-@router.get("/{gig_id}", response_model=GigRead)
+@router.get("/{gig_id}/", response_model=GigRead)
 def get_singular_gig(
         gig_id: str,
         db: Session = Depends(get_db)
