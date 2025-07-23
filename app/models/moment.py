@@ -9,7 +9,7 @@ class MomentCreate(MomentBase):
 class MomentRead(MomentBase):
     id: str
     description: str
-    model_config = ConfigDict(from_attributes=True)
 
 class MomentsWrapper(BaseModel):
     moments: list[MomentCreate]
+    model_config = ConfigDict(from_attributes=True)

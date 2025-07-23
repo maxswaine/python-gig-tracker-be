@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import date
 
 
@@ -12,4 +12,5 @@ class DayCreate(DayBase):
 
 class DayRead(DayBase):
     id: str
+    model_config = ConfigDict(from_attributes=True)
 
