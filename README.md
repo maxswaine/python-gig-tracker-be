@@ -39,7 +39,7 @@ A lightweight backend API for tracking live music experiences — gigs, festival
 
 ### Clone the repository
 ```bash
-git clone https://github.com/your-username/python-gig-tracker-be.git
+git clone https://github.com/maxswaine/python-gig-tracker-be.git
 cd python-gig-tracker-be
 ```
 
